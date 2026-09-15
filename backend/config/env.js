@@ -41,6 +41,18 @@ if(!process.env.CLOUDINARY_API_SECRET){
     throw new Error('CLOUDINARY_API_SECRET is not defined in .env file');
 }
 
+if(!process.env.GEMINI_API_KEY){
+    throw new Error('GEMINI_API_KEY is not defined in .env file');
+}
+
+if(!process.env.PINECONE_API_KEY){
+    throw new Error('PINECONE_API_KEY is not defined in .env file');
+}
+
+if(!process.env.PINECONE_INDEX_NAME){
+    throw new Error('PINECONE_INDEX_NAME is not defined in .env file');
+}
+
 export const PORT = process.env.PORT || 5000;
 export const MONGO_URI = process.env.MONGO_URI;
 export const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
@@ -52,3 +64,6 @@ export const GOOGLE_USER = process.env.GOOGLE_USER;
 export const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
 export const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
 export const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
+export const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+export const PINECONE_API_KEY = process.env.PINECONE_API_KEY;
+export const PINECONE_INDEX_NAME = process.env.PINECONE_INDEX_NAME;
