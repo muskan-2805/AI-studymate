@@ -21,3 +21,13 @@ export const queryTopChunks = async (vector, documentId, topK = 3) => {
     });
     return result.matches.map(match => match.metadata.text);
 };
+export const getAllChunksForDocument = async (documentId,dummyVector)=>{
+    const result = await index.query({
+        vector:dummyVector,
+        topK:20,
+        filter: { documentId },
+        includeMetadata: true,
+    });
+    return result.matches.map((match) => match.metadata.text);
+
+};
