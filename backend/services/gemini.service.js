@@ -8,3 +8,9 @@ export const getEmbedding = async (text) => {
     const result = await model.embedContent(text);//sends text to gemini,gets back vector representation 
     return result.embedding.values;//actual array of numbers representing the text in vector
 };
+
+export const generateText = async(prompt)=>{
+    const model = genAI.getGenerativeModel({model:'gemini-3.6-flash'});
+    const result = await model.generateContent(prompt);
+    return result.response.text();
+};

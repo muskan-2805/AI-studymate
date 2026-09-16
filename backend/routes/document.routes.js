@@ -1,10 +1,11 @@
 import express from 'express';
-import { uploadDocument } from '../controllers/document.controller.js';
+import { uploadDocument,askQuestion } from '../controllers/document.controller.js';
 import { protect } from '../middleware/auth.middleware.js';
 import upload from '../config/multer.js';
 
 const router = express.Router();
 
 router.post('/upload', protect, upload.single('file'), uploadDocument);
+router.post('/:id/ask',protect,askQuestion);
 
 export default router;
