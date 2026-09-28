@@ -1,7 +1,7 @@
 import User from '../models/User.js';
 import Session from '../models/Session.js';
 import jwt from 'jsonwebtoken';
-import {createOtp} from '../services/otp.service.js';
+import {createOtp,verifyOtp as verifyOtpService} from '../services/otp.service.js';
 import { sendMail } from '../services/mailer.service.js';
 import { JWT_REFRESH_SECRET } from '../config/env.js';
 import { generateAccessToken, generateRefreshToken } from '../services/token.service.js';
@@ -54,9 +54,24 @@ export const login = async (req, res) => {
                 message: 'Invalid credentials'
             });
         }
+
+        if (!user.isVerified) {
+            const otpCode = await createOtp(email);
+            await sendMail({
+                to: email,
+                subject: 'Verify your email for AI Study Buddy',
+                html: `<p>Your verification code is: <b>${otpCode}</b></p><p>This code will expire in 5 minutes.</p>`,
+            });
+            return res.status(403).json({
+                message: 'Email not verified. A new verification code has been sent to your email.',
+                needsVerification: true,
+                email: user.email,
+            });
+        }
+
         const accessToken = await createUserSession(user, req, res);
 
-        res.status(200). json({
+        res.status(200).json({
             _id: user._id,
             name: user.name,
             email: user.email,
@@ -172,4 +187,90 @@ export const logoutAll = async(req,res)=>{
             message:'Server error',error:err.message
         });
     }
+};
+export const forgotPassword = async(req,res)=>{
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ message: 'Email is required' });
+        }
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: 'No account found with this email' });
+        }
+        const otpCode = await createOtp(email);
+
+        await sendMail({
+            to: email,
+            subject: 'Reset your AI Study Buddy password',
+            html: `<p>Your password reset code is: <b>${otpCode}</b></p><p>This code will expire in 5 minutes.</p>`,
+        });
+
+        res.status(200).json({ message: 'Password reset code sent to your email' });
+    } catch (err) {
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+};
+export const resetPassword = async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+        if (!email || !otp || !newPassword) {
+            return res.status(400).json({ message: 'Email, OTP, and new password are required' });
+        }
+        const result = await verifyOtpService(email, otp);
+        if (!result.valid) {
+            return res.status(400).json({ message: result.message });
+        }
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        user.password = newPassword;
+        await user.save();
+
+        await Session.updateMany({ user: user._id, revoked: false }, { revoked: true });
+
+        res.status(200).json({ message: 'Password reset successfully. Please log in with your new password.' });
+    } catch (err) {
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+};
+export const updateProfile = async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ message: 'Name is required' });
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { name },
+      { new: true }
+    ).select('-password');
+
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Current and new password are required' });
+    }
+
+    const user = await User.findById(req.user._id);
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    await Session.updateMany({ user: user._id, revoked: false }, { revoked: true });
+
+    res.status(200).json({ message: 'Password changed successfully. Please log in again.' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
 };

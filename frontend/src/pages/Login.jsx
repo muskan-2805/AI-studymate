@@ -22,6 +22,10 @@ const Login = () => {
       login(res.data.accessToken, { id: res.data._id, name: res.data.name, email: res.data.email });
       navigate('/dashboard');
     } catch (err) {
+      if (err.response?.data?.needsVerification) {
+        navigate('/verify-otp', { state: { email: err.response.data.email } });
+        return;
+      }
       setError(err.response?.data?.message || 'Login failed');
     } finally {
       setLoading(false);
