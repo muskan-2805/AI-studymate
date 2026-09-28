@@ -7,3 +7,6 @@ export const logRevision = (documentId, score, token) =>
 
 export const getTodayRevisions = (token) =>
   API.get('/revision/today', { headers: { Authorization: `Bearer ${token}` } });
+
+export const getAllRevisionLogs = (token) =>
+  API.get('/revision/all', { headers: { Authorization: `Bearer ${token}` } });
