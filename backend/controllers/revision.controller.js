@@ -53,3 +53,19 @@ export const getTodayRevisions = async(req,res)=>{
     }
 };
 
+export const getAllRevisions = async(req,res)=>{
+    try{
+        const userId = req.user._id;
+
+        const logs = await RevisionLog.find({ user: userId })
+            .populate('document', 'title')
+            .sort({ nextRevisionDate: 1 });
+
+        res.status(200).json(logs);
+    }catch(err){
+        res.status(500).json({
+            message:'Server error',error:err.message
+        });
+    }
+};
+

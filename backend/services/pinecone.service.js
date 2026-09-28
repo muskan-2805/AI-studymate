@@ -31,3 +31,7 @@ export const getAllChunksForDocument = async (documentId,dummyVector)=>{
     return result.matches.map((match) => match.metadata.text);
 
 };
+
+export const deleteChunksForDocument = async (documentId) => {
+    await index.deleteMany({ filter: { documentId: documentId.toString() } });
+};

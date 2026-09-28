@@ -25,6 +25,6 @@ const revisionLogSchema = new mongoose.Schema(
             required:true,
         },
     },
-    {tumestamps:true}
+    {timestamps:true}
 );
 export default mongoose.model('RevisionLog',revisionLogSchema);

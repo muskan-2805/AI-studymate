@@ -1,9 +1,10 @@
 import Document from '../models/Document.js';
 import {processDocument} from '../services/documentProcessor.service.js';
-import {getEmbedding,generateText} from '../services/gemini.service.js';
+import {generateText,generateTextWithRetry,getEmbedding} from '../services/gemini.service.js';
 import {queryTopChunks} from '../services/pinecone.service.js';
 import { getAllChunksForDocument } from '../services/pinecone.service.js';
 import Quiz from '../models/Quiz.js';
+import RevisionLog from '../models/RevisionLog.js';
 
 export const uploadDocument = async (req, res) => {
     try {
@@ -40,7 +41,7 @@ export const askQuestion = async(req,res)=>{
         const {id:documentId}=req.params;
 
         if(!question){
-            res.status(400).json({
+            return res.status(400).json({
                 message:'Question is required'
             });
         }
@@ -58,13 +59,16 @@ export const askQuestion = async(req,res)=>{
         ${topChunks.join('\n---\n')}
         Question:${question}`;
 
-        const answer = await generateText(prompt);
+        const answer = await generateTextWithRetry(prompt);
 
         res.status(200).json({answer});
     }catch(err){
-        res.status(500).json({
-            message:'Server error',error:err.message
-        });
+         console.error('askQuestion error:', err);
+    const status = err?.status === 503 ? 503 : 500;
+    const message = status === 503
+        ? 'AI service is temporarily busy, please try again in a moment'
+        : 'Answer generation failed';
+    res.status(status).json({ message, error: err.message });
     }
 };
 
@@ -91,17 +95,20 @@ export const generateQuiz = async(req,res)=>{
         
         Text:${combinedText}`;
 
-        const raw = await generateText(prompt);
+        const raw = await generateTextWithRetry(prompt);
         const clean = raw.replace(/```json|```/g,'').trim();
         const questions = JSON.parse(clean);
 
-        const quiz = await Quiz.create({document:documentId,questions});
+        const quiz = await Quiz.create({document:documentId,user: req.user._id,questions});
 
         res.status(201).json(quiz);
     }catch(err){
-        res.status(500).json({
-            message:'Quiz generation failed',error:err.message
-        });
+         console.error('generateQuiz error:', err);
+    const status = err?.status === 503 ? 503 : 500;
+    const message = status === 503
+        ? 'AI service is temporarily busy, please try again in a moment'
+        : 'Quiz generation failed';
+    res.status(status).json({ message, error: err.message });
     }
 };
 
@@ -117,5 +124,70 @@ export const getUserDocuments = async(req,res)=>{
         res.status(500).json({
             message:'Server error',error:err.message
         });
+    }
+};
+export const getUserQuizzes = async (req, res) => {
+  try {
+    const quizzes = await Quiz.find({ user: req.user._id })
+      .populate('document', 'title')
+      .sort({ createdAt: -1 });
+    res.status(200).json(quizzes);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+export const getQuizById = async (req, res) => {
+    try {
+        const quiz = await Quiz.findOne({ _id: req.params.quizId, user: req.user._id })
+            .populate('document', 'title');
+        if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
+        res.status(200).json(quiz);
+    } catch (err) {
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+};
+
+export const deleteDocument = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const document = await Document.findOne({ _id: id, user: req.user._id });
+        if (!document) {
+            return res.status(404).json({ message: 'Document not found' });
+        }
+
+        await Quiz.deleteMany({ document: id, user: req.user._id });
+        await RevisionLog.deleteMany({ document: id, user: req.user._id });
+
+        try {
+            await deleteChunksForDocument(id);
+        } catch (err) {
+            console.error('Failed to delete Pinecone vectors for document:', err.message);
+        }
+
+        await document.deleteOne();
+
+        res.status(200).json({ message: 'Document deleted successfully' });
+    } catch (err) {
+        console.error('deleteDocument error:', err);
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+};
+
+export const deleteQuiz = async (req, res) => {
+    try {
+        const { quizId } = req.params;
+
+        const quiz = await Quiz.findOne({ _id: quizId, user: req.user._id });
+        if (!quiz) {
+            return res.status(404).json({ message: 'Quiz not found' });
+        }
+
+        await quiz.deleteOne();
+
+        res.status(200).json({ message: 'Quiz deleted successfully' });
+    } catch (err) {
+        console.error('deleteQuiz error:', err);
+        res.status(500).json({ message: 'Server error', error: err.message });
     }
 };
