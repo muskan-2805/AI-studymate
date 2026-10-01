@@ -1,35 +1,49 @@
 import {GoogleGenerativeAI} from '@google/generative-ai';
 import {GEMINI_API_KEY} from '../config/env.js';
 
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);// creates one authenticated client for whole app using Api key
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+
+const PRIMARY_MODEL = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
+const FALLBACK_MODEL = process.env.GEMINI_FALLBACK_MODEL || null;
 
 export const getEmbedding = async (text) => {
-    const model = genAI.getGenerativeModel({model:'gemini-embedding-001'});//selects google dedicated embedding model not a chat model(specifically trained to turns text into vector)
-    const result = await model.embedContent(text);//sends text to gemini,gets back vector representation 
-    return result.embedding.values;//actual array of numbers representing the text in vector
+    const model = genAI.getGenerativeModel({model:'gemini-embedding-001'});
+    const result = await model.embedContent(text);
+    return result.embedding.values;
 };
 
-export const generateText = async(prompt)=>{
-    const model = genAI.getGenerativeModel({model:'gemini-3.6-flash'});
+export const generateText = async (prompt, modelName = PRIMARY_MODEL) => {
+    const model = genAI.getGenerativeModel({model: modelName});
     const result = await model.generateContent(prompt);
     return result.response.text();
 };
 
-export async function generateTextWithRetry(prompt, maxRetries = 3) {
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function tryModel(prompt, modelName, maxRetries) {
     for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
-            return await generateText(prompt);
+            return await generateText(prompt, modelName);
         } catch (err) {
-            const is503 = err?.status === 503;
-            const isLastAttempt = attempt === maxRetries - 1;
+            const retryable = err?.status === 503 || err?.status === 429;
+            if (!retryable || attempt === maxRetries - 1) throw err;
 
-            if (!is503 || isLastAttempt) {
-                throw err;
-            }
-
-            const delay = 1000 * Math.pow(2, attempt);
-            console.warn(`Gemini 503, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
-            await new Promise((resolve) => setTimeout(resolve, delay));
+            const delay = 1000 * 2 ** attempt + Math.random() * 500;
+            console.warn(`Gemini ${err.status} on ${modelName}, retrying in ${Math.round(delay)}ms (attempt ${attempt + 1}/${maxRetries})`);
+            await sleep(delay);
         }
+    }
+}
+
+export async function generateTextWithRetry(prompt, maxRetries = 3) {
+    try {
+        return await tryModel(prompt, PRIMARY_MODEL, maxRetries);
+    } catch (err) {
+        const overloaded = err?.status === 503 || err?.status === 429;
+        if (overloaded && FALLBACK_MODEL && FALLBACK_MODEL !== PRIMARY_MODEL) {
+            console.warn(`${PRIMARY_MODEL} overloaded, falling back to ${FALLBACK_MODEL}`);
+            return await tryModel(prompt, FALLBACK_MODEL, maxRetries);
+        }
+        throw err;
     }
 }

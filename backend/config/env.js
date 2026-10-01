@@ -13,20 +13,12 @@ if(!process.env.JWT_REFRESH_SECRET){
     throw new Error('JWT_REFRESH_SECRET is not defined in .env file');
 }
 
-if(!process.env.GOOGLE_CLIENT_ID){
-    throw new Error('GOOGLE_CLIENT_ID is not defined in .env file');
+if(!process.env.GMAIL_USER){
+    throw new Error('GMAIL_USER is not defined in .env file');
 }
 
-if(!process.env.GOOGLE_CLIENT_SECRET){
-    throw new Error('GOOGLE_CLIENT_SECRET is not defined in .env file');
-}
-
-if(!process.env.GOOGLE_REFRESH_TOKEN){
-    throw new Error('GOOGLE_REFRESH_TOKEN is not defined in .env file');
-}
-
-if(!process.env.GOOGLE_USER){
-    throw new Error('GOOGLE_USER is not defined in .env file');
+if(!process.env.GMAIL_APP_PASSWORD){ 
+    throw new Error('GMAIL_APP_PASSWORD is not defined');
 }
 
 if(!process.env.CLOUDINARY_CLOUD_NAME){
@@ -57,10 +49,8 @@ export const PORT = process.env.PORT || 5000;
 export const MONGO_URI = process.env.MONGO_URI;
 export const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
 export const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
-export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-export const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-export const GOOGLE_REFRESH_TOKEN = process.env.GOOGLE_REFRESH_TOKEN;
-export const GOOGLE_USER = process.env.GOOGLE_USER;
+export const GMAIL_USER = process.env.GMAIL_USER;
+export const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
 export const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
 export const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
 export const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;

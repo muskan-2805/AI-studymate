@@ -2,7 +2,7 @@ import Document from '../models/Document.js';
 import {processDocument} from '../services/documentProcessor.service.js';
 import {generateText,generateTextWithRetry,getEmbedding} from '../services/gemini.service.js';
 import {queryTopChunks} from '../services/pinecone.service.js';
-import { getAllChunksForDocument } from '../services/pinecone.service.js';
+import { getAllChunksForDocument,deleteChunksForDocument } from '../services/pinecone.service.js';
 import Quiz from '../models/Quiz.js';
 import RevisionLog from '../models/RevisionLog.js';
 
