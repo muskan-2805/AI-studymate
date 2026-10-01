@@ -6,6 +6,7 @@ import { askQuestion, generateQuiz, getDocuments } from '../api/documents';
 import { logRevision } from '../api/revision';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
+import Select from '../components/Select';
 
 const DocumentView = () => {
   const { id } = useParams();
@@ -146,14 +147,14 @@ const DocumentView = () => {
                     <HelpCircle size={16} className="text-orange-500" />
                     <h2 className="text-sm font-semibold text-gray-800">Quiz yourself</h2>
                   </div>
-                  <select
+                  <Select
+                    size="sm"
+                    align="right"
                     value={numQuestions}
-                    onChange={(e) => setNumQuestions(Number(e.target.value))}
+                    onChange={setNumQuestions}
                     disabled={quizLoading}
-                    className="text-xs border border-gray-200 rounded-full px-3 py-1 outline-none"
-                  >
-                    {[5, 10, 15, 20].map((n) => <option key={n} value={n}>{n} questions</option>)}
-                  </select>
+                    options={[5, 10, 15, 20].map((n) => ({ value: n, label: `${n} questions` }))}
+                  />
                 </div>
                 <p className="text-xs text-gray-400 mb-4">Test what you've learned from this document.</p>
 

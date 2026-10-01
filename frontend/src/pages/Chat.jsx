@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { getDocuments, askQuestion } from '../api/documents';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
+import Select from '../components/Select';
 
 const Chat = () => {
   const { accessToken } = useAuth();
@@ -52,15 +53,11 @@ const Chat = () => {
             <div className="bg-white rounded-3xl border border-orange-300 p-6">
               <div className="flex items-center gap-2 mb-4">
                 <FileText size={15} className="text-orange-400" />
-                <select
+                <Select
                   value={selectedDoc || ''}
-                  onChange={(e) => { setSelectedDoc(e.target.value); setChat([]); }}
-                  className="text-sm border border-orange-200 rounded-full px-4 py-1.5 outline-none"
-                >
-                  {documents.map((d) => (
-                    <option key={d._id} value={d._id}>{d.title}</option>
-                  ))}
-                </select>
+                  onChange={(id) => { setSelectedDoc(id); setChat([]); }}
+                  options={documents.map((d) => ({ value: d._id, label: d.title }))}
+                />
               </div>
 
               <div className="space-y-3 mb-4 min-h-[280px] max-h-96 overflow-y-auto">
