@@ -2,26 +2,33 @@ import mongoose from 'mongoose';
 
 const documentSchema = new mongoose.Schema(
     {
-        user:{
-            type:mongoose.Schema.Types.ObjectId,
-            ref:'User',
-            required:true,
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+            index: true,
         },
-        title:{
-            type:String,
-            required:true,
+        title: {
+            type: String,
+            required: true,
         },
-        fileUrl:{
-            type:String,
-            required:true,
+        fileUrl: {
+            type: String,
+            required: true,
         },
-        status:{
-            type:String,
-            enum:['processing','ready','failed'],
-            default:'processing',
+        publicId: {
+            type: String,
+        },
+        status: {
+            type: String,
+            enum: ['processing', 'ready', 'failed'],
+            default: 'processing',
+        },
+        errorMessage: {
+            type: String,
         },
     },
-    {timestamps:true}
+    { timestamps: true }
 );
 
-export default mongoose.model('Document',documentSchema);
+export default mongoose.model('Document', documentSchema);

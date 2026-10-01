@@ -1,51 +1,31 @@
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 dotenv.config();
 
-if(!process.env.MONGO_URI){
-    throw new Error('MONGO_URI is not defined in .env file');
-}
+const required = [
+    "MONGO_URI",
+    "JWT_ACCESS_SECRET",
+    "JWT_REFRESH_SECRET",
+    "GMAIL_USER",
+    "GMAIL_APP_PASSWORD",
+    "CLOUDINARY_CLOUD_NAME",
+    "CLOUDINARY_API_KEY",
+    "CLOUDINARY_API_SECRET",
+    "GEMINI_API_KEY",
+    "PINECONE_API_KEY",
+    "PINECONE_INDEX_NAME",
+];
 
-if(!process.env.JWT_ACCESS_SECRET){
-    throw new Error('JWT_ACCESS_SECRET is not defined in .env file');
-}
-
-if(!process.env.JWT_REFRESH_SECRET){
-    throw new Error('JWT_REFRESH_SECRET is not defined in .env file');
-}
-
-if(!process.env.GMAIL_USER){
-    throw new Error('GMAIL_USER is not defined in .env file');
-}
-
-if(!process.env.GMAIL_APP_PASSWORD){ 
-    throw new Error('GMAIL_APP_PASSWORD is not defined');
-}
-
-if(!process.env.CLOUDINARY_CLOUD_NAME){
-    throw new Error('CLOUDINARY_CLOUD_NAME is not defined in .env file');
-}
-
-if(!process.env.CLOUDINARY_API_KEY){
-    throw new Error('CLOUDINARY_API_KEY is not defined in .env file');
-}
-
-if(!process.env.CLOUDINARY_API_SECRET){
-    throw new Error('CLOUDINARY_API_SECRET is not defined in .env file');
-}
-
-if(!process.env.GEMINI_API_KEY){
-    throw new Error('GEMINI_API_KEY is not defined in .env file');
-}
-
-if(!process.env.PINECONE_API_KEY){
-    throw new Error('PINECONE_API_KEY is not defined in .env file');
-}
-
-if(!process.env.PINECONE_INDEX_NAME){
-    throw new Error('PINECONE_INDEX_NAME is not defined in .env file');
+for (const key of required) {
+    if (!process.env[key]) {
+        throw new Error(`${key} is not defined in .env file`);
+    }
 }
 
 export const PORT = process.env.PORT || 5000;
+export const NODE_ENV = process.env.NODE_ENV || "development";
+export const IS_PROD = NODE_ENV === "production";
+export const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+
 export const MONGO_URI = process.env.MONGO_URI;
 export const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
 export const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
