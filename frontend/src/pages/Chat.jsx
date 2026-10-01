@@ -32,7 +32,7 @@ const Chat = () => {
       const res = await askQuestion(selectedDoc, userMsg, accessToken);
       setChat((prev) => [...prev, { role: 'ai', text: res.data.answer }]);
     } catch (err) {
-      setChat((prev) => [...prev, { role: 'ai', text: 'Something went wrong. Try again.' }]);
+      setChat((prev) => [...prev, { role: 'ai', text: err.response?.data?.message || 'Something went wrong. Try again.' }]);
     } finally {
       setAsking(false);
     }

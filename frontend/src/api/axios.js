@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 const API = axios.create({
-    baseURL: 'http://localhost:5000/api',
+    baseURL: API_URL,
     withCredentials: true,
 });
 
@@ -29,7 +31,7 @@ API.interceptors.response.use(
             originalRequest._retry = true;
             try {
                 if (!refreshPromise) {
-                    refreshPromise = axios.post('http://localhost:5000/api/auth/refresh', {}, { withCredentials: true });
+                    refreshPromise = axios.post(`${API_URL}/auth/refresh`, {}, { withCredentials: true });
                 }
                 const res = await refreshPromise;
                 refreshPromise = null;

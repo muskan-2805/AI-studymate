@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { BookOpen } from 'lucide-react';
-import { verifyOtp as verifyOtpApi } from '../api/auth';
+import { verifyOtp as verifyOtpApi, resendOtp } from '../api/auth';
 import { useAuth } from '../context/AuthContext';
 
 const VerifyOtp = () => {
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [info, setInfo] = useState('');
+  const [resending, setResending] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -32,6 +34,24 @@ const VerifyOtp = () => {
     }
   };
 
+  const handleResend = async () => {
+    setError('');
+    setInfo('');
+    if (!email) {
+      setError('No email found. Please log in again.');
+      return;
+    }
+    setResending(true);
+    try {
+      await resendOtp({ email });
+      setInfo('A new code has been sent to your email.');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not resend the code');
+    } finally {
+      setResending(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-orange-50 p-4">
       <div className="w-full max-w-4xl bg-white rounded-3xl shadow-sm border border-gray-100 grid grid-cols-2 overflow-hidden">
@@ -51,6 +71,7 @@ const VerifyOtp = () => {
 
           <form onSubmit={handleSubmit}>
             {error && <div className="bg-red-50 text-red-500 text-sm rounded-xl px-4 py-2 mb-4">{error}</div>}
+            {info && <div className="bg-green-50 text-green-600 text-sm rounded-xl px-4 py-2 mb-4">{info}</div>}
 
             <label className="block text-xs font-medium text-gray-500 mb-1.5">6-digit code *</label>
             <input
@@ -70,7 +91,13 @@ const VerifyOtp = () => {
 
           <p className="text-center text-xs text-gray-400 mt-6">
             Didn't get a code?{' '}
-            <Link to="/register" className="text-gray-900 font-medium hover:underline">Try again</Link>
+            <button type="button" onClick={handleResend} disabled={resending} className="text-gray-900 font-medium hover:underline disabled:opacity-60">
+              {resending ? 'Sending...' : 'Resend code'}
+            </button>
+          </p>
+          <p className="text-center text-xs text-gray-400 mt-2">
+            Wrong email?{' '}
+            <Link to="/register" className="text-gray-900 font-medium hover:underline">Go back</Link>
           </p>
         </div>
 

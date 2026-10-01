@@ -24,11 +24,14 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDocuments();
-    const interval = setInterval(() => {
-      fetchDocuments();
-    }, 5000);
-    return () => clearInterval(interval);
   }, []);
+
+  const hasProcessing = documents.some((d) => d.status === 'processing');
+  useEffect(() => {
+    if (!hasProcessing) return;
+    const interval = setInterval(fetchDocuments, 5000);
+    return () => clearInterval(interval);
+  }, [hasProcessing]);
 
   const doUpload = async (file) => {
     if (!file) return;

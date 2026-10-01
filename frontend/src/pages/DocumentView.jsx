@@ -41,7 +41,7 @@ const DocumentView = () => {
       const res = await askQuestion(id, userMsg, accessToken);
       setChat((prev) => [...prev, { role: 'ai', text: res.data.answer }]);
     } catch (err) {
-      setChat((prev) => [...prev, { role: 'ai', text: 'Something went wrong. Try again.' }]);
+      setChat((prev) => [...prev, { role: 'ai', text: err.response?.data?.message || 'Something went wrong. Try again.' }]);
     } finally {
       setAsking(false);
     }
@@ -57,7 +57,7 @@ const DocumentView = () => {
       const res = await generateQuiz(id, numQuestions, accessToken);
       setQuiz(res.data);
     } catch (err) {
-      alert('Failed to generate quiz');
+      alert(err.response?.data?.message || 'Failed to generate quiz');
     } finally {
       setQuizLoading(false);
     }
