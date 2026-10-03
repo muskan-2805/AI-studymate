@@ -9,7 +9,9 @@ The backend runs on a free hosting plan and sleeps when idle, so the first reque
 ## Screenshots
 
 ![Dashboard](docs/screenshots/dashboard.png)
+
 ![Chat with notes](docs/screenshots/chat.png)
+
 ![Quiz](docs/screenshots/quiz.png)
 
 ## Features
